@@ -1,10 +1,11 @@
+```groovy
 pipeline {
 
     agent any
 
     environment {
-        IMAGE = "docker.io/yourname/nextjs-shop"
-        IMAGE_TAG = "${GIT_COMMIT}"
+        IMAGE = 'lyhov168/nextjs-test'
+        IMAGE_TAG = "${BUILD_NUMBER}"
     }
 
     stages {
@@ -15,7 +16,7 @@ pipeline {
             }
         }
 
-        stage('Install') {
+        stage('Install Dependencies') {
             steps {
                 sh 'npm ci'
             }
@@ -29,29 +30,39 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh """
-                    docker build \
-                      -t ${IMAGE}:${IMAGE_TAG} \
-                      .
-                """
+                sh "docker build -t ${IMAGE}:${IMAGE_TAG} ."
             }
         }
 
         stage('Push Docker Image') {
             steps {
-                sh """
-                    docker push ${IMAGE}:${IMAGE_TAG}
-                """
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-credentials',
+                        usernameVariable: 'DOCKER_USERNAME',
+                        passwordVariable: 'DOCKER_PASSWORD'
+                    )
+                ]) {
+                    sh '''
+                        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+                        docker push ${IMAGE}:${IMAGE_TAG}
+                        docker logout
+                    '''
+                }
             }
         }
 
-        stage('Update GitOps') {
-            steps {
-                // clone GitOps repo
-                // modify image tag
-                // git commit
-                // git push
-            }
+    }
+
+    post {
+        success {
+            echo "Pipeline completed successfully!"
+            echo "Docker image: ${IMAGE}:${IMAGE_TAG}"
+        }
+
+        failure {
+            echo "Pipeline failed!"
         }
     }
 }
+```
