@@ -1,4 +1,3 @@
-
 pipeline {
 
     agent any
@@ -30,7 +29,11 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh "docker build -t ${IMAGE}:${IMAGE_TAG} ."
+                sh '''
+                    docker build \
+                        -t ${IMAGE}:${IMAGE_TAG} \
+                        .
+                '''
             }
         }
 
@@ -44,14 +47,17 @@ pipeline {
                     )
                 ]) {
                     sh '''
-                        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-                        docker push ${IMAGE}:${IMAGE_TAG}
-                        docker logout
+                        echo "$DOCKER_PASSWORD" | docker login docker.io \
+                            --username "$DOCKER_USERNAME" \
+                            --password-stdin
+
+                        docker push "${IMAGE}:${IMAGE_TAG}"
+
+                        docker logout docker.io
                     '''
                 }
             }
         }
-
     }
 
     post {
@@ -65,4 +71,3 @@ pipeline {
         }
     }
 }
-
