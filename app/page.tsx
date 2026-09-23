@@ -4,6 +4,9 @@ export default function page() {
       <h1 className="text-7xl font-bold text-black">
         Welcome to the Home Page
       </h1>
+      <p className="mt-6 text-2xl text-gray-700">
+        This is a simple Next.js application deployed using Jenkins and Docker.
+      </p>
     </main>
   );
 }
