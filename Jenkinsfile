@@ -91,9 +91,7 @@ pipeline {
 
                 dir('gitops') {
 
-                    echo "========================================"
-                    echo "Cloning GitOps repository"
-                    echo "========================================"
+                    echo "Cloning GitOps repository..."
 
                     git(
                         url: "${GITOPS_REPO}",
@@ -101,38 +99,40 @@ pipeline {
                         credentialsId: "${GITHUB_CREDENTIALS}"
                     )
 
-                    echo "========================================"
-                    echo "Updating image tag"
-                    echo "========================================"
+                    echo "Updating image tag to ${IMAGE_TAG}..."
 
-                    sed -i 's/tag: .*/tag: "${IMAGE_TAG}"/' \
-                        "${GITOPS_VALUES_FILE}"
+                    sh """
+                        sed -i 's/tag: .*/tag: "${IMAGE_TAG}"/' \
+                            "${GITOPS_VALUES_FILE}"
+                    """
 
-                    echo "Current image configuration:"
+                    echo "Updated values.yaml:"
 
-                    grep -A3 '^image:' "${GITOPS_VALUES_FILE}"
+                    sh """
+                        grep -A3 '^image:' "${GITOPS_VALUES_FILE}"
+                    """
 
-                    echo "========================================"
-                    echo "Configuring Git"
-                    echo "========================================"
+                    echo "Configuring Git..."
 
-                    git config user.name "jenkins"
-                    git config user.email "jenkins@localhost"
+                    sh '''
+                        git config user.name "jenkins"
+                        git config user.email "jenkins@localhost"
+                    '''
 
-                    echo "========================================"
-                    echo "Committing GitOps change"
-                    echo "========================================"
+                    echo "Committing GitOps change..."
 
-                    git add "${GITOPS_VALUES_FILE}"
+                    sh """
+                        git add "${GITOPS_VALUES_FILE}"
 
-                    git commit \
-                        -m "Update Next.js image to ${IMAGE_TAG}"
+                        git commit \
+                            -m "Update Next.js image to ${IMAGE_TAG}"
+                    """
 
-                    echo "========================================"
-                    echo "Pushing GitOps change"
-                    echo "========================================"
+                    echo "Pushing GitOps change..."
 
-                    git push origin master
+                    sh '''
+                        git push origin main
+                    '''
                 }
             }
         }
