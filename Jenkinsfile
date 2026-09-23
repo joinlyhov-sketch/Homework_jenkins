@@ -1,10 +1,9 @@
 pipeline {
-
     agent any
 
     environment {
-        IMAGE = 'lyhov168/nextjs-test'
-        IMAGE_TAG = "${BUILD_NUMBER}"
+        DOCKER_IMAGE = "makarajr126/nextjs-app"
+        DOCKER_CREDENTIALS = "dockerhub-credentials"
     }
 
     stages {
@@ -21,39 +20,48 @@ pipeline {
             }
         }
 
-        stage('Test') {
+        stage('Lint') {
             steps {
                 sh 'npm run lint'
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Next.js Build') {
             steps {
-                sh '''
-                    docker build \
-                        -t ${IMAGE}:${IMAGE_TAG} \
-                        .
-                '''
+                sh 'npm run build'
             }
         }
 
-        stage('Push Docker Image') {
+        stage('Docker Build') {
+            steps {
+                sh """
+                    docker build \
+                        -t ${DOCKER_IMAGE}:${BUILD_NUMBER} \
+                        -t ${DOCKER_IMAGE}:latest \
+                        .
+                """
+            }
+        }
+
+        stage('Docker Push') {
             steps {
                 withCredentials([
                     usernamePassword(
-                        credentialsId: 'dockerhub-credentials',
+                        credentialsId: "${DOCKER_CREDENTIALS}",
                         usernameVariable: 'DOCKER_USERNAME',
                         passwordVariable: 'DOCKER_PASSWORD'
                     )
                 ]) {
+
                     sh '''
-                        echo "$DOCKER_PASSWORD" | docker login docker.io \
-                            --username "$DOCKER_USERNAME" \
+                        echo "$DOCKER_PASSWORD" | docker login \
+                            -u "$DOCKER_USERNAME" \
                             --password-stdin
 
-                        docker push "${IMAGE}:${IMAGE_TAG}"
+                        docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}
+                        docker push ${DOCKER_IMAGE}:latest
 
-                        docker logout docker.io
+                        docker logout
                     '''
                 }
             }
@@ -62,12 +70,16 @@ pipeline {
 
     post {
         success {
-            echo "Pipeline completed successfully!"
-            echo "Docker image: ${IMAGE}:${IMAGE_TAG}"
+            echo "CI SUCCESS"
+            echo "Docker image: ${DOCKER_IMAGE}:${BUILD_NUMBER}"
         }
 
         failure {
-            echo "Pipeline failed!"
+            echo "CI FAILED"
+        }
+
+        always {
+            sh 'docker logout || true'
         }
     }
 }
