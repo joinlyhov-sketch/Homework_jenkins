@@ -105,34 +105,44 @@ pipeline {
                     echo "Updating image tag"
                     echo "========================================"
 
-                    sed -i 's/tag: .*/tag: "${IMAGE_TAG}"/' \
-                        "${GITOPS_VALUES_FILE}"
+                    sh """
+                        sed -i 's/tag: .*/tag: "${IMAGE_TAG}"/' \
+                            "${GITOPS_VALUES_FILE}"
+                    """
 
                     echo "Current image configuration:"
 
-                    grep -A3 '^image:' "${GITOPS_VALUES_FILE}"
+                    sh """
+                        grep -A3 '^image:' "${GITOPS_VALUES_FILE}"
+                    """
 
                     echo "========================================"
                     echo "Configuring Git"
                     echo "========================================"
 
-                    git config user.name "jenkins"
-                    git config user.email "jenkins@localhost"
+                    sh '''
+                        git config user.name "jenkins"
+                        git config user.email "jenkins@localhost"
+                    '''
 
                     echo "========================================"
                     echo "Committing GitOps change"
                     echo "========================================"
 
-                    git add "${GITOPS_VALUES_FILE}"
+                    sh """
+                        git add "${GITOPS_VALUES_FILE}"
 
-                    git commit \
-                        -m "Update Next.js image to ${IMAGE_TAG}"
+                        git commit \
+                            -m "Update Next.js image to ${IMAGE_TAG}"
+                    """
 
                     echo "========================================"
                     echo "Pushing GitOps change"
                     echo "========================================"
 
-                    git push origin master
+                    sh '''
+                        git push origin master
+                    '''
                 }
             }
         }
