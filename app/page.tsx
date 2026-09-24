@@ -7,6 +7,9 @@ export default function page() {
       <p className="mt-6 text-2xl text-gray-700 bg-amber-600 p-3.5">
         Hello teacher here is my homework
       </p>
+      <p className="mt-6 text-2xl text-gray-700 bg-purple-600 p-3.5">
+        Name: CHIV LYHOV
+      </p>
     </main>
   );
 }
