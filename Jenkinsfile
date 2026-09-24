@@ -140,9 +140,18 @@ pipeline {
                     echo "Pushing GitOps change"
                     echo "========================================"
 
-                    sh '''
-                        git push origin master
-                    '''
+                    withCredentials([
+                        usernamePassword(
+                            credentialsId: "${GITHUB_CREDENTIALS}",
+                            usernameVariable: 'GITHUB_USERNAME',
+                            passwordVariable: 'GITHUB_TOKEN'
+                        )
+                    ]) {
+                        sh '''
+                            git config credential.helper '!f() { echo username=$GITHUB_USERNAME; echo password=$GITHUB_TOKEN; }; f'
+                            git push origin master
+                        '''
+                    }
                 }
             }
         }
