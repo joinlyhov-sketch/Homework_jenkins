@@ -4,7 +4,9 @@ export default function page() {
       <h1 className="text-7xl font-bold text-black">
         Welcome to the Home Page
       </h1>
-      <p className="mt-6 text-2xl text-gray-700">my name lyhov</p>
+      <p className="mt-6 text-2xl text-gray-700 bg-amber-600 p-3.5">
+        Hello teacher here is my homework
+      </p>
     </main>
   );
 }
